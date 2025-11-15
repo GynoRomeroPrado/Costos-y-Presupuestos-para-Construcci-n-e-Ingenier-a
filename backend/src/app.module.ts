@@ -14,6 +14,7 @@ import { ProveedoresModule } from './modules/proveedores/proveedores.module';
 import { AcuModule } from './modules/acu/acu.module';
 import { ProyectosModule } from './modules/proyectos/proyectos.module';
 import { MetradosModule } from './modules/metrados/metrados.module';
+import { CommonModule } from './modules/common/common.module';
 
 @Module({
   imports: [
@@ -28,6 +29,9 @@ import { MetradosModule } from './modules/metrados/metrados.module';
 
     // Cache (Redis)
     CacheModule.registerAsync(redisConfig),
+
+    // Common services
+    CommonModule,
 
     // Feature modules
     AuthModule,

@@ -9,23 +9,33 @@ import {
   Query,
   HttpCode,
   HttpStatus,
+  UploadedFile,
+  UseInterceptors,
+  Res,
 } from '@nestjs/common';
+import { FileInterceptor } from '@nestjs/platform-express';
 import {
   ApiTags,
   ApiOperation,
   ApiResponse,
   ApiBearerAuth,
+  ApiConsumes,
 } from '@nestjs/swagger';
+import { Response } from 'express';
 import { InsumosService } from './insumos.service';
 import { CreateInsumoDto } from './dto/create-insumo.dto';
 import { UpdateInsumoDto } from './dto/update-insumo.dto';
 import { QueryInsumoDto } from './dto/query-insumo.dto';
+import { ImportService } from '../common/services/import.service';
 
 @ApiTags('insumos')
 // @ApiBearerAuth() // Descomentar cuando Auth esté implementado
 @Controller('insumos')
 export class InsumosController {
-  constructor(private readonly insumosService: InsumosService) {}
+  constructor(
+    private readonly insumosService: InsumosService,
+    private readonly importService: ImportService,
+  ) {}
 
   @Post()
   @ApiOperation({ summary: 'Crear un nuevo insumo' })
@@ -96,5 +106,29 @@ export class InsumosController {
   @ApiResponse({ status: 404, description: 'Insumo no encontrado' })
   hardDelete(@Param('id') id: string) {
     return this.insumosService.hardDelete(id);
+  }
+
+  @Post('importar')
+  @UseInterceptors(FileInterceptor('file'))
+  @ApiConsumes('multipart/form-data')
+  @ApiOperation({ summary: 'Importar insumos desde archivo Excel' })
+  @ApiResponse({ status: 200, description: 'Insumos importados' })
+  async importarExcel(@UploadedFile() file: Express.Multer.File) {
+    return this.importService.importarInsumosDesdeExcel(file.buffer);
+  }
+
+  @Get('plantilla/descargar')
+  @ApiOperation({ summary: 'Descargar plantilla Excel para importar insumos' })
+  @ApiResponse({ status: 200, description: 'Plantilla descargada' })
+  async descargarPlantilla(@Res() res: Response) {
+    const buffer = await this.importService.generarPlantillaInsumos();
+
+    res.set({
+      'Content-Type': 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+      'Content-Disposition': 'attachment; filename=plantilla_insumos.xlsx',
+      'Content-Length': buffer.length,
+    });
+
+    res.send(buffer);
   }
 }

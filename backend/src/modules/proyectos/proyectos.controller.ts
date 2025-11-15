@@ -9,17 +9,30 @@ import {
   Query,
   HttpCode,
   HttpStatus,
+  Res,
+  UploadedFile,
+  UseInterceptors,
 } from '@nestjs/common';
-import { ApiTags, ApiOperation, ApiResponse, ApiParam } from '@nestjs/swagger';
+import { FileInterceptor } from '@nestjs/platform-express';
+import { ApiTags, ApiOperation, ApiResponse, ApiParam, ApiConsumes } from '@nestjs/swagger';
+import { Response } from 'express';
 import { ProyectosService } from './proyectos.service';
 import { CreateProyectoDto } from './dto/create-proyecto.dto';
 import { UpdateProyectoDto } from './dto/update-proyecto.dto';
 import { CreateGastoGeneralDto } from './dto/create-gasto-general.dto';
+import { ReportService } from '../common/services/report.service';
+import { ImportService } from '../common/services/import.service';
+import { MetradosService } from '../metrados/metrados.service';
 
 @ApiTags('proyectos')
 @Controller('proyectos')
 export class ProyectosController {
-  constructor(private readonly proyectosService: ProyectosService) {}
+  constructor(
+    private readonly proyectosService: ProyectosService,
+    private readonly reportService: ReportService,
+    private readonly importService: ImportService,
+    private readonly metradosService: MetradosService,
+  ) {}
 
   @Post()
   @ApiOperation({ summary: 'Crear un nuevo proyecto' })
@@ -96,5 +109,77 @@ export class ProyectosController {
   @ApiResponse({ status: 204, description: 'Proyecto eliminado' })
   remove(@Param('id') id: string) {
     return this.proyectosService.remove(id);
+  }
+
+  @Get(':id/reporte/excel')
+  @ApiOperation({ summary: 'Descargar presupuesto en Excel' })
+  @ApiResponse({ status: 200, description: 'Reporte Excel generado' })
+  async descargarPresupuestoExcel(
+    @Param('id') id: string,
+    @Res() res: Response,
+  ) {
+    const proyecto = await this.proyectosService.findOne(id);
+    const metrados = await this.metradosService.findByProyecto(id);
+    const buffer = await this.reportService.generarPresupuestoExcel(
+      proyecto,
+      metrados,
+    );
+
+    res.set({
+      'Content-Type':
+        'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+      'Content-Disposition': `attachment; filename=presupuesto_${proyecto.nombre.replace(/\s+/g, '_')}.xlsx`,
+    });
+    res.send(buffer);
+  }
+
+  @Get(':id/reporte/pdf')
+  @ApiOperation({ summary: 'Descargar presupuesto en PDF' })
+  @ApiResponse({ status: 200, description: 'Reporte PDF generado' })
+  async descargarPresupuestoPDF(
+    @Param('id') id: string,
+    @Res() res: Response,
+  ) {
+    const proyecto = await this.proyectosService.findOne(id);
+    const metrados = await this.metradosService.findByProyecto(id);
+    const buffer = await this.reportService.generarPresupuestoPDF(
+      proyecto,
+      metrados,
+    );
+
+    res.set({
+      'Content-Type': 'application/pdf',
+      'Content-Disposition': `attachment; filename=presupuesto_${proyecto.nombre.replace(/\s+/g, '_')}.pdf`,
+    });
+    res.send(buffer);
+  }
+
+  @Post(':id/metrados/importar')
+  @UseInterceptors(FileInterceptor('file'))
+  @ApiConsumes('multipart/form-data')
+  @ApiOperation({ summary: 'Importar metrados desde Excel' })
+  @ApiResponse({ status: 201, description: 'Metrados importados exitosamente' }}
+  async importarMetrados(
+    @Param('id') id: string,
+    @UploadedFile() file: Express.Multer.File,
+  ) {
+    // Verificar que el proyecto existe
+    await this.proyectosService.findOne(id);
+
+    return this.importService.importarMetradosDesdeExcel(id, file.buffer);
+  }
+
+  @Get(':id/metrados/plantilla')
+  @ApiOperation({ summary: 'Descargar plantilla de metrados' })
+  @ApiResponse({ status: 200, description: 'Plantilla descargada' })
+  async descargarPlantillaMetrados(@Res() res: Response) {
+    const buffer = await this.importService.generarPlantillaMetrados();
+
+    res.set({
+      'Content-Type':
+        'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+      'Content-Disposition': 'attachment; filename=plantilla_metrados.xlsx',
+    });
+    res.send(buffer);
   }
 }

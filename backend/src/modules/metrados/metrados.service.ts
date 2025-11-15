@@ -234,4 +234,56 @@ export class MetradosService {
 
     return creados;
   }
+
+  async createFromImport(importData: {
+    proyectoId: string;
+    partidaCodigo: string;
+    agrupacion?: string;
+    cantidad: number;
+    acuCodigo?: string;
+    observaciones?: string;
+  }): Promise<Metrado> {
+    // Buscar partida por código
+    const partida = await this.partidaRepository.findOne({
+      where: { codigo: importData.partidaCodigo },
+    });
+
+    if (!partida) {
+      throw new NotFoundException(
+        `Partida con código ${importData.partidaCodigo} no encontrada`,
+      );
+    }
+
+    // Si se especificó código de ACU, buscarlo
+    let acu: Acu | null = null;
+    if (importData.acuCodigo) {
+      acu = await this.acuRepository.findOne({
+        where: { codigo: importData.acuCodigo },
+      });
+
+      if (!acu) {
+        throw new NotFoundException(
+          `ACU con código ${importData.acuCodigo} no encontrado`,
+        );
+      }
+    } else {
+      // Buscar ACU activo más reciente para esta partida
+      acu = await this.acuRepository.findOne({
+        where: { partidaId: partida.id, activo: true },
+        order: { version: 'DESC' },
+      });
+    }
+
+    // Crear metrado usando el método create existente
+    const createDto: CreateMetradoDto = {
+      proyectoId: importData.proyectoId,
+      partidaId: partida.id,
+      acuId: acu?.id,
+      cantidad: importData.cantidad,
+      agrupacion: importData.agrupacion,
+      observaciones: importData.observaciones,
+    };
+
+    return this.create(createDto);
+  }
 }

@@ -41,24 +41,21 @@
 - [x] Importación en lote de metrados (bulk create)
 - [x] Asociación automática de ACUs más recientes
 
-### 🚧 EN PROGRESO
-
-#### Fase 4: Reportes y Documentación
-- [ ] Generador de reportes Excel con formato profesional
-- [ ] Generador de reportes PDF
+#### Fase 4: Reportes e Importación ✅ 75%
+- [x] Generador de reportes Excel con formato profesional (3 hojas: Resumen, Presupuesto, ACU)
+- [x] Generador de reportes PDF con diseño profesional
+- [x] Importación masiva de insumos desde Excel
+- [x] Generación de plantillas Excel para importación
+- [x] Importación masiva de metrados desde Excel con validación
+- [x] Endpoints de exportación de presupuestos (Excel/PDF)
+- [x] CommonModule con servicios compartidos (ImportService, ReportService)
 - [ ] Especificaciones técnicas (WYSIWYG editor)
 - [ ] Dashboard con gráficos (Recharts)
 - [ ] Sistema de alertas
-- [ ] Importación desde Excel (parser de archivos)
+- [ ] Plantillas customizables
+- [ ] Exportación a Word
 
 ### 📋 PENDIENTE
-
-#### Fase 4: Reportes y Documentación
-- [ ] Generador de reportes Excel/PDF
-- [ ] Especificaciones técnicas (WYSIWYG)
-- [ ] Plantillas customizables
-- [ ] Dashboard con gráficos
-- [ ] Exportación a Word
 
 #### Fase 5: Cronograma (Opcional)
 - [ ] Interfaz Gantt
@@ -75,15 +72,15 @@
 │   │   ├── config/            # Configuración (TypeORM, Redis)
 │   │   ├── database/          # Migraciones y seeds
 │   │   ├── modules/
-│   │   │   ├── insumos/       ✅ CRUD completo
+│   │   │   ├── insumos/       ✅ CRUD completo + importación Excel
 │   │   │   ├── partidas/      ✅ CRUD completo
 │   │   │   ├── proveedores/   ✅ CRUD completo
-│   │   │   ├── acu/           🚧 En construcción
-│   │   │   ├── proyectos/     🚧 En construcción
-│   │   │   ├── metrados/      🚧 En construcción
+│   │   │   ├── acu/           ✅ Motor de cálculo completo
+│   │   │   ├── proyectos/     ✅ Presupuestos + reportes
+│   │   │   ├── metrados/      ✅ CRUD + importación Excel
 │   │   │   ├── auth/          ✅ Básico implementado
-│   │   │   └── users/         ✅ Básico implementado
-│   │   └── common/            # DTOs, guards, pipes
+│   │   │   ├── users/         ✅ Básico implementado
+│   │   │   └── common/        ✅ ImportService, ReportService
 │   └── package.json
 │
 ├── frontend/                   # React + TypeScript
@@ -114,6 +111,9 @@
 - ✅ Swagger/OpenAPI
 - ✅ Class Validator
 - ✅ bcrypt para passwords
+- ✅ ExcelJS para reportes Excel
+- ✅ Puppeteer para generación de PDF
+- ✅ Multer para carga de archivos
 
 ### Frontend
 - ✅ React 18
@@ -129,34 +129,39 @@
 ## Próximos Pasos Prioritarios
 
 ### Inmediato (Sprint actual)
-1. **Implementar motor de cálculo de ACUs**
-   - Crear endpoints para composición de ACUs
-   - Lógica de cálculo automático de costos
-   - Snapshot de precios de insumos
+1. **Frontend para módulos implementados** 🎯
+   - Interfaz de gestión de ACUs
+   - Dashboard de proyectos
+   - Editor de metrados tipo spreadsheet
+   - Integrar botones de descarga de reportes
+   - Formulario de importación masiva
 
-2. **Completar módulo de Proyectos**
-   - CRUD de proyectos
-   - Dashboard básico
-   - Relación con metrados
+2. **Dashboard con gráficos**
+   - Estadísticas de proyectos
+   - Gráficos de distribución de costos
+   - Indicadores de rendimiento
 
-3. **Implementar módulo de Metrados**
-   - Editor tipo spreadsheet
-   - Cálculo automático de presupuestos
-   - Importación desde Excel
+3. **Sistema de especificaciones técnicas**
+   - Editor WYSIWYG para especificaciones
+   - Asociación a partidas
+   - Exportación en reportes
 
 ### Corto Plazo (Próximos 2 sprints)
-1. **Generador de reportes básicos**
-   - Exportación a Excel (ExcelJS)
-   - PDF de presupuesto
-
-2. **Tests automatizados**
-   - Unit tests para cálculos críticos
+1. **Tests automatizados**
+   - Unit tests para cálculos críticos (ACU, Presupuesto)
+   - Integration tests para servicios
    - E2E tests para flujos principales
 
-3. **Interfaz de usuario completa**
+2. **Mejoras de UX**
    - Componentes de tablas (TanStack Table)
-   - Formularios con validación
+   - Formularios con validación mejorada
    - Modales y confirmaciones
+   - Loading states y feedback visual
+
+3. **Optimizaciones**
+   - Cacheo de consultas frecuentes (Redis)
+   - Paginación optimizada
+   - Búsqueda full-text en PostgreSQL
 
 ## Comandos de Desarrollo
 
@@ -202,6 +207,31 @@ npm run migration:run
 3. Los ACUs hacen snapshot del precio al momento de crearse
 4. Soft delete en lugar de borrado físico
 5. Validación de datos en backend con class-validator
+6. Recálculo en cascada: Insumo → ACU → Metrado → Proyecto
+7. Versionado automático de ACUs por partida
+
+### Funcionalidades de Importación/Exportación
+**Importación Excel:**
+- **Insumos**: Plantilla con validación de tipos y monedas, reporte de errores por fila
+- **Metrados**: Importación masiva con búsqueda automática de partidas y ACUs por código
+
+**Exportación de Reportes:**
+- **Excel**: 3 hojas (Resumen, Presupuesto Detallado, Análisis de Precios Unitarios)
+  - Formato profesional con colores y estilos
+  - Agrupación por especialidad
+  - Fórmulas y totales calculados
+- **PDF**: Presupuesto completo con diseño profesional
+  - Información del proyecto
+  - Tabla de presupuesto por especialidad
+  - Resumen de costos con IGV
+
+**Endpoints disponibles:**
+- `POST /api/insumos/importar` - Importar insumos desde Excel
+- `GET /api/insumos/plantilla/descargar` - Descargar plantilla de insumos
+- `POST /api/proyectos/:id/metrados/importar` - Importar metrados
+- `GET /api/proyectos/:id/metrados/plantilla` - Descargar plantilla de metrados
+- `GET /api/proyectos/:id/reporte/excel` - Generar presupuesto en Excel
+- `GET /api/proyectos/:id/reporte/pdf` - Generar presupuesto en PDF
 
 ### Seguridad
 - Passwords hasheados con bcrypt
