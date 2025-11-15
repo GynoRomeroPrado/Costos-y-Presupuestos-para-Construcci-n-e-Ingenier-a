@@ -4,7 +4,7 @@
 
 ### ✅ COMPLETADO
 
-#### Fase 1: Fundamentos y Catálogos
+#### Fase 1: Fundamentos y Catálogos ✅ 100%
 - [x] Configuración inicial del proyecto (monorepo)
 - [x] Backend NestJS con TypeScript
 - [x] Frontend React + TypeScript + Tailwind CSS
@@ -18,23 +18,38 @@
 - [x] Frontend básico con navegación
 - [x] Páginas principales creadas
 
+#### Fase 2: Motor de ACUs ✅ 100%
+- [x] Implementar CRUD completo de ACUs
+- [x] Motor de cálculo de costos unitarios
+- [x] Sistema de versionado de ACUs (automático por partida)
+- [x] Editor de cuadrillas (JSON flexible)
+- [x] Gestión de desperdicios/mermas (porcentaje por insumo)
+- [x] Duplicación de ACUs
+- [x] Recálculo en cascada cuando cambian precios
+- [x] Snapshot de precios para histórico
+- [x] Desglose por tipo de insumo (Material, Mano Obra, Equipo, Subcontrato)
+- [x] Estadísticas de ACUs
+
+#### Fase 3: Presupuestos y Proyectos ✅ 100%
+- [x] Módulo de Proyectos (CRUD completo)
+- [x] Módulo de Metrados con CRUD completo
+- [x] Motor de presupuesto con cálculo automático
+- [x] Gestión de gastos generales (fijos o porcentaje)
+- [x] Cálculo de utilidades e IGV
+- [x] Resumen de presupuesto por especialidad
+- [x] Recálculo automático al modificar metrados
+- [x] Importación en lote de metrados (bulk create)
+- [x] Asociación automática de ACUs más recientes
+
 ### 🚧 EN PROGRESO
 
-#### Fase 2: Motor de ACUs
-- [ ] Implementar CRUD completo de ACUs
-- [ ] Motor de cálculo de costos unitarios
-- [ ] Sistema de versionado de ACUs
-- [ ] Editor de cuadrillas
-- [ ] Gestión de desperdicios/mermas
-- [ ] Plantillas de ACU
-
-#### Fase 3: Presupuestos y Proyectos
-- [ ] Módulo de Proyectos (CRUD + dashboard)
-- [ ] Módulo de Metrados con interfaz spreadsheet
-- [ ] Motor de presupuesto con cálculo automático
-- [ ] Gestión de gastos generales y utilidades
+#### Fase 4: Reportes y Documentación
+- [ ] Generador de reportes Excel con formato profesional
+- [ ] Generador de reportes PDF
+- [ ] Especificaciones técnicas (WYSIWYG editor)
+- [ ] Dashboard con gráficos (Recharts)
 - [ ] Sistema de alertas
-- [ ] Importación desde Excel
+- [ ] Importación desde Excel (parser de archivos)
 
 ### 📋 PENDIENTE
 
