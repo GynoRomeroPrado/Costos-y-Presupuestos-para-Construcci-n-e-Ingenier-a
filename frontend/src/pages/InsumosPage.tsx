@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { insumosService, Insumo, CreateInsumoDto } from '../services/insumos.service';
-import { Download, Upload, Plus, Eye, Trash2, Edit } from 'lucide-react';
+import { Download, Upload, Plus, Eye, Trash2, Edit, Search } from 'lucide-react';
 import { InsumoForm } from '../components/InsumoForm';
 import { useToast } from '../hooks/useToast';
 
@@ -11,12 +11,24 @@ export default function InsumosPage() {
   const [showImportModal, setShowImportModal] = useState(false);
   const [importFile, setImportFile] = useState<File | null>(null);
   const [tipoFilter, setTipoFilter] = useState<string>('');
+  const [searchTerm, setSearchTerm] = useState<string>('');
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [editingInsumo, setEditingInsumo] = useState<Insumo | undefined>();
 
   const { data, isLoading } = useQuery({
     queryKey: ['insumos', tipoFilter],
     queryFn: () => insumosService.getAll({ tipo: tipoFilter || undefined }),
+  });
+
+  // Filter data on client side for search
+  const filteredData = data?.items?.filter((insumo: Insumo) => {
+    if (!searchTerm) return true;
+    const search = searchTerm.toLowerCase();
+    return (
+      insumo.codigo.toLowerCase().includes(search) ||
+      insumo.nombre.toLowerCase().includes(search) ||
+      insumo.descripcion?.toLowerCase().includes(search)
+    );
   });
 
   const importarMutation = useMutation({
@@ -171,20 +183,31 @@ export default function InsumosPage() {
         </div>
       </div>
 
-      <div className="mb-4 flex gap-4">
-        <div className="w-64">
-          <select
-            value={tipoFilter}
-            onChange={(e) => setTipoFilter(e.target.value)}
-            className="block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 text-sm"
-          >
-            <option value="">Todos los tipos</option>
-            <option value="material">Materiales</option>
-            <option value="mano_obra">Mano de Obra</option>
-            <option value="equipo">Equipos</option>
-            <option value="subcontrato">Subcontratos</option>
-          </select>
+      {/* Filters */}
+      <div className="mb-4 grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="relative">
+          <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+            <Search className="h-5 w-5 text-gray-400" />
+          </div>
+          <input
+            type="text"
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md leading-5 bg-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+            placeholder="Buscar por código, nombre o descripción..."
+          />
         </div>
+        <select
+          value={tipoFilter}
+          onChange={(e) => setTipoFilter(e.target.value)}
+          className="block w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
+        >
+          <option value="">Todos los tipos</option>
+          <option value="material">Materiales</option>
+          <option value="mano_obra">Mano de Obra</option>
+          <option value="equipo">Equipos</option>
+          <option value="subcontrato">Subcontratos</option>
+        </select>
       </div>
 
       {isLoading ? (
@@ -217,7 +240,7 @@ export default function InsumosPage() {
               </tr>
             </thead>
             <tbody className="bg-white divide-y divide-gray-200">
-              {data?.items?.map((insumo: Insumo) => (
+              {filteredData?.map((insumo: Insumo) => (
                 <tr key={insumo.id} className="hover:bg-gray-50">
                   <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
                     {insumo.codigo}
@@ -273,9 +296,13 @@ export default function InsumosPage() {
             </tbody>
           </table>
 
-          {(!data?.items || data.items.length === 0) && (
+          {(!filteredData || filteredData.length === 0) && (
             <div className="text-center py-12">
-              <p className="text-gray-500">No hay insumos registrados</p>
+              <p className="text-gray-500">
+                {searchTerm || tipoFilter
+                  ? 'No se encontraron insumos con los filtros aplicados'
+                  : 'No hay insumos registrados'}
+              </p>
             </div>
           )}
         </div>

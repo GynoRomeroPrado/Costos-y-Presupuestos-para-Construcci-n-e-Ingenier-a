@@ -1,17 +1,52 @@
 import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { partidasService, Partida } from '../services/partidas.service';
-import { Plus, Eye, Edit, Trash2 } from 'lucide-react';
+import { partidasService, Partida, CreatePartidaDto } from '../services/partidas.service';
+import { Plus, Eye, Edit, Trash2, Search } from 'lucide-react';
+import { PartidaForm } from '../components/PartidaForm';
 import { useToast } from '../hooks/useToast';
 
 export default function PartidasPage() {
   const queryClient = useQueryClient();
   const toast = useToast();
   const [especialidadFilter, setEspecialidadFilter] = useState<string>('');
+  const [searchTerm, setSearchTerm] = useState<string>('');
+  const [isFormOpen, setIsFormOpen] = useState(false);
+  const [editingPartida, setEditingPartida] = useState<Partida | undefined>();
 
   const { data, isLoading } = useQuery({
-    queryKey: ['partidas', especialidadFilter],
-    queryFn: () => partidasService.getAll({ especialidad: especialidadFilter || undefined }),
+    queryKey: ['partidas', especialidadFilter, searchTerm],
+    queryFn: () =>
+      partidasService.getAll({
+        especialidad: especialidadFilter || undefined,
+        search: searchTerm || undefined,
+      }),
+  });
+
+  const createMutation = useMutation({
+    mutationFn: (data: CreatePartidaDto) => partidasService.create(data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['partidas'] });
+      toast.success('Partida creada exitosamente');
+      setIsFormOpen(false);
+      setEditingPartida(undefined);
+    },
+    onError: () => {
+      toast.error('Error al crear partida');
+    },
+  });
+
+  const updateMutation = useMutation({
+    mutationFn: ({ id, data }: { id: string; data: CreatePartidaDto }) =>
+      partidasService.update(id, data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['partidas'] });
+      toast.success('Partida actualizada exitosamente');
+      setIsFormOpen(false);
+      setEditingPartida(undefined);
+    },
+    onError: () => {
+      toast.error('Error al actualizar partida');
+    },
   });
 
   const deleteMutation = useMutation({
@@ -24,6 +59,19 @@ export default function PartidasPage() {
       toast.error('Error al eliminar partida');
     },
   });
+
+  const handleFormSubmit = (data: CreatePartidaDto) => {
+    if (editingPartida) {
+      updateMutation.mutate({ id: editingPartida.id, data });
+    } else {
+      createMutation.mutate(data);
+    }
+  };
+
+  const handleEdit = (partida: Partida) => {
+    setEditingPartida(partida);
+    setIsFormOpen(true);
+  };
 
   const handleDelete = (id: string, nombre: string) => {
     if (confirm(`¿Estás seguro de eliminar la partida "${nombre}"?`)) {
@@ -40,30 +88,49 @@ export default function PartidasPage() {
             Administra partidas de obra por especialidad.
           </p>
         </div>
-        <button className="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700">
+        <button
+          onClick={() => {
+            setEditingPartida(undefined);
+            setIsFormOpen(true);
+          }}
+          className="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700"
+        >
           <Plus className="h-5 w-5 mr-2" />
           Nueva Partida
         </button>
       </div>
 
-      <div className="mb-4">
+      {/* Filters */}
+      <div className="mb-4 grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="relative">
+          <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+            <Search className="h-5 w-5 text-gray-400" />
+          </div>
+          <input
+            type="text"
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md leading-5 bg-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+            placeholder="Buscar por código o nombre..."
+          />
+        </div>
         <select
           value={especialidadFilter}
           onChange={(e) => setEspecialidadFilter(e.target.value)}
-          className="w-64 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
         >
           <option value="">Todas las especialidades</option>
-          <option value="OBRAS PRELIMINARES">Obras Preliminares</option>
-          <option value="MOVIMIENTO DE TIERRAS">Movimiento de Tierras</option>
-          <option value="CONCRETO SIMPLE">Concreto Simple</option>
-          <option value="CONCRETO ARMADO">Concreto Armado</option>
-          <option value="ALBAÑILERÍA">Albañilería</option>
-          <option value="PISOS Y PAVIMENTOS">Pisos y Pavimentos</option>
-          <option value="REVESTIMIENTOS">Revestimientos</option>
-          <option value="INST. SANITARIAS">Instalaciones Sanitarias</option>
-          <option value="INST. ELÉCTRICAS">Instalaciones Eléctricas</option>
-          <option value="CARPINTERÍA MADERA">Carpintería de Madera</option>
-          <option value="PINTURA">Pintura</option>
+          <option value="Obras Preliminares">Obras Preliminares</option>
+          <option value="Movimiento de Tierras">Movimiento de Tierras</option>
+          <option value="Obras de Concreto Simple">Obras de Concreto Simple</option>
+          <option value="Obras de Concreto Armado">Obras de Concreto Armado</option>
+          <option value="Estructuras Metálicas">Estructuras Metálicas</option>
+          <option value="Arquitectura">Arquitectura</option>
+          <option value="Instalaciones Sanitarias">Instalaciones Sanitarias</option>
+          <option value="Instalaciones Eléctricas">Instalaciones Eléctricas</option>
+          <option value="Instalaciones Mecánicas">Instalaciones Mecánicas</option>
+          <option value="Acabados">Acabados</option>
+          <option value="Varios">Varios</option>
         </select>
       </div>
 
@@ -119,10 +186,11 @@ export default function PartidasPage() {
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                     <div className="flex justify-end gap-2">
-                      <button className="text-blue-600 hover:text-blue-900" title="Ver Detalle">
-                        <Eye className="h-5 w-5" />
-                      </button>
-                      <button className="text-gray-600 hover:text-gray-900" title="Editar">
+                      <button
+                        onClick={() => handleEdit(partida)}
+                        className="text-purple-600 hover:text-purple-900"
+                        title="Editar"
+                      >
                         <Edit className="h-5 w-5" />
                       </button>
                       <button
@@ -146,6 +214,18 @@ export default function PartidasPage() {
           )}
         </div>
       )}
+
+      {/* Formulario de Partida */}
+      <PartidaForm
+        isOpen={isFormOpen}
+        onClose={() => {
+          setIsFormOpen(false);
+          setEditingPartida(undefined);
+        }}
+        onSubmit={handleFormSubmit}
+        partida={editingPartida}
+        isLoading={createMutation.isPending || updateMutation.isPending}
+      />
     </div>
   );
 }
