@@ -5,6 +5,7 @@ import { metradosService } from '../services/metrados.service';
 import { Calendar, DollarSign, MapPin, User, FileText, TrendingUp } from 'lucide-react';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
+import { formatCurrency } from '../utils/formatters';
 
 interface ProyectoDetailModalProps {
   isOpen: boolean;
@@ -20,11 +21,6 @@ export function ProyectoDetailModal({ isOpen, onClose, proyecto }: ProyectoDetai
   });
 
   if (!proyecto) return null;
-
-  const formatCurrency = (value: number, moneda: string) => {
-    const symbol = moneda === 'USD' ? '$' : moneda === 'EUR' ? '€' : 'S/';
-    return `${symbol} ${value.toLocaleString('es-PE', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
-  };
 
   const formatDate = (date: string) => {
     return format(new Date(date), 'dd/MM/yyyy', { locale: es });

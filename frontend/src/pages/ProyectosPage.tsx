@@ -8,6 +8,7 @@ import { MetradosEditor } from '../components/MetradosEditor';
 import { ProyectoDetailModal } from '../components/ProyectoDetailModal';
 import { Pagination } from '../components/Pagination';
 import { TableSkeleton } from '../components/TableSkeleton';
+import { formatCurrency } from '../utils/formatters';
 import { useToast } from '../hooks/useToast';
 
 export default function ProyectosPage() {
@@ -149,11 +150,6 @@ export default function ProyectosPage() {
         file: importFile,
       });
     }
-  };
-
-  const formatCurrency = (value: number, moneda: string) => {
-    const symbol = moneda === 'USD' ? '$' : moneda === 'EUR' ? '€' : 'S/';
-    return `${symbol} ${value.toLocaleString('es-PE', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
   };
 
   return (

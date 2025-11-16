@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Modal } from './Modal';
 import { CreateProveedorDto, Proveedor } from '../services/proveedores.service';
+import { validateRUC, validateEmail, validatePhone, validateRequired } from '../utils/validators';
 
 interface ProveedorFormProps {
   isOpen: boolean;
@@ -28,6 +29,8 @@ export function ProveedorForm({
     observaciones: '',
     activo: true,
   });
+
+  const [errors, setErrors] = useState<Record<string, string>>({});
 
   useEffect(() => {
     if (proveedor) {
@@ -57,9 +60,34 @@ export function ProveedorForm({
     }
   }, [proveedor, isOpen]);
 
+  const validateForm = (): boolean => {
+    const newErrors: Record<string, string> = {};
+
+    if (!validateRequired(formData.nombre)) {
+      newErrors.nombre = 'El nombre es obligatorio';
+    }
+
+    if (formData.ruc && !validateRUC(formData.ruc)) {
+      newErrors.ruc = 'RUC debe tener 11 dígitos';
+    }
+
+    if (formData.email && !validateEmail(formData.email)) {
+      newErrors.email = 'Email no válido';
+    }
+
+    if (formData.telefono && !validatePhone(formData.telefono)) {
+      newErrors.telefono = 'Teléfono no válido';
+    }
+
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    onSubmit(formData);
+    if (validateForm()) {
+      onSubmit(formData);
+    }
   };
 
   const handleChange = (
@@ -70,6 +98,14 @@ export function ProveedorForm({
       ...prev,
       [name]: type === 'checkbox' ? (e.target as HTMLInputElement).checked : value,
     }));
+    // Limpiar error del campo al cambiar
+    if (errors[name]) {
+      setErrors((prev) => {
+        const newErrors = { ...prev };
+        delete newErrors[name];
+        return newErrors;
+      });
+    }
   };
 
   return (
@@ -90,10 +126,16 @@ export function ProveedorForm({
             name="nombre"
             value={formData.nombre}
             onChange={handleChange}
-            required
-            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 ${
+              errors.nombre
+                ? 'border-red-500 focus:ring-red-500'
+                : 'border-gray-300 focus:ring-blue-500'
+            }`}
             placeholder="Ej: Aceros Arequipa"
           />
+          {errors.nombre && (
+            <p className="mt-1 text-sm text-red-600">{errors.nombre}</p>
+          )}
         </div>
 
         <div className="grid grid-cols-2 gap-4">
@@ -106,9 +148,16 @@ export function ProveedorForm({
               value={formData.ruc}
               onChange={handleChange}
               maxLength={11}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 ${
+                errors.ruc
+                  ? 'border-red-500 focus:ring-red-500'
+                  : 'border-gray-300 focus:ring-blue-500'
+              }`}
               placeholder="12345678901"
             />
+            {errors.ruc && (
+              <p className="mt-1 text-sm text-red-600">{errors.ruc}</p>
+            )}
           </div>
 
           {/* Teléfono */}
@@ -119,9 +168,16 @@ export function ProveedorForm({
               name="telefono"
               value={formData.telefono}
               onChange={handleChange}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 ${
+                errors.telefono
+                  ? 'border-red-500 focus:ring-red-500'
+                  : 'border-gray-300 focus:ring-blue-500'
+              }`}
               placeholder="+51 999 999 999"
             />
+            {errors.telefono && (
+              <p className="mt-1 text-sm text-red-600">{errors.telefono}</p>
+            )}
           </div>
         </div>
 
@@ -147,9 +203,16 @@ export function ProveedorForm({
               name="email"
               value={formData.email}
               onChange={handleChange}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 ${
+                errors.email
+                  ? 'border-red-500 focus:ring-red-500'
+                  : 'border-gray-300 focus:ring-blue-500'
+              }`}
               placeholder="contacto@proveedor.com"
             />
+            {errors.email && (
+              <p className="mt-1 text-sm text-red-600">{errors.email}</p>
+            )}
           </div>
 
           {/* Contacto */}

@@ -5,6 +5,7 @@ import { Download, Upload, Plus, Eye, Trash2, Edit, Search } from 'lucide-react'
 import { InsumoForm } from '../components/InsumoForm';
 import { Pagination } from '../components/Pagination';
 import { TableSkeleton } from '../components/TableSkeleton';
+import { formatCurrency, getTipoColor, getTipoLabel } from '../utils/formatters';
 import { useToast } from '../hooks/useToast';
 
 export default function InsumosPage() {
@@ -129,36 +130,6 @@ export default function InsumosPage() {
     if (importFile) {
       importarMutation.mutate(importFile);
     }
-  };
-
-  const formatCurrency = (value: number, moneda: string) => {
-    const symbol = moneda === 'USD' ? '$' : moneda === 'EUR' ? '€' : 'S/';
-    return `${symbol} ${value.toLocaleString('es-PE', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
-  };
-
-  const getTipoColor = (tipo: string) => {
-    switch (tipo) {
-      case 'material':
-        return 'bg-blue-100 text-blue-800';
-      case 'mano_obra':
-        return 'bg-green-100 text-green-800';
-      case 'equipo':
-        return 'bg-yellow-100 text-yellow-800';
-      case 'subcontrato':
-        return 'bg-purple-100 text-purple-800';
-      default:
-        return 'bg-gray-100 text-gray-800';
-    }
-  };
-
-  const getTipoLabel = (tipo: string) => {
-    const labels: Record<string, string> = {
-      material: 'Material',
-      mano_obra: 'Mano de Obra',
-      equipo: 'Equipo',
-      subcontrato: 'Subcontrato',
-    };
-    return labels[tipo] || tipo;
   };
 
   return (

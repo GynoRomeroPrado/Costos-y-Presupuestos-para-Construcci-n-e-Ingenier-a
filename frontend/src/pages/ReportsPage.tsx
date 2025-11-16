@@ -14,6 +14,7 @@ import { insumosService } from '../services/insumos.service';
 import { partidasService } from '../services/partidas.service';
 import { acuService } from '../services/acu.service';
 import { proveedoresService } from '../services/proveedores.service';
+import { formatCurrency } from '../utils/formatters';
 import {
   BarChart,
   Bar,
@@ -114,10 +115,6 @@ export default function ReportsPage() {
     }));
 
   const COLORS = ['#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6'];
-
-  const formatCurrency = (value: number) => {
-    return `S/ ${value.toLocaleString('es-PE', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
-  };
 
   return (
     <div>

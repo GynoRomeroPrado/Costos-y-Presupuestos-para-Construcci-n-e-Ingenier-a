@@ -7,6 +7,7 @@ import { Plus, Eye, Copy, Power, Calculator, Search } from 'lucide-react';
 import { AcuForm } from '../components/AcuForm';
 import { Pagination } from '../components/Pagination';
 import { TableSkeleton } from '../components/TableSkeleton';
+import { formatCurrency, getTipoColor } from '../utils/formatters';
 import { useToast } from '../hooks/useToast';
 
 export default function AcuPage() {
@@ -84,25 +85,6 @@ export default function AcuPage() {
       }
     },
   });
-
-  const formatCurrency = (value: number) => {
-    return `S/ ${value.toLocaleString('es-PE', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
-  };
-
-  const getTipoColor = (tipo: string) => {
-    switch (tipo) {
-      case 'material':
-        return 'bg-blue-100 text-blue-800';
-      case 'mano_obra':
-        return 'bg-green-100 text-green-800';
-      case 'equipo':
-        return 'bg-yellow-100 text-yellow-800';
-      case 'subcontrato':
-        return 'bg-purple-100 text-purple-800';
-      default:
-        return 'bg-gray-100 text-gray-800';
-    }
-  };
 
   return (
     <div>
