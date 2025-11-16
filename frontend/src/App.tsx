@@ -1,5 +1,7 @@
 import { BrowserRouter as Router, Routes, Route, Link } from 'react-router-dom';
 import { Home, Package, ClipboardList, Calculator, FolderKanban, Settings } from 'lucide-react';
+import { ToastContainer } from '@/components/Toast';
+import { useToastStore } from '@/hooks/useToast';
 
 // Pages (to be created)
 import HomePage from '@/pages/HomePage';
@@ -9,9 +11,12 @@ import AcuPage from '@/pages/AcuPage';
 import ProyectosPage from '@/pages/ProyectosPage';
 
 function App() {
+  const { toasts, removeToast } = useToastStore();
+
   return (
     <Router>
       <div className="min-h-screen bg-gray-50">
+        <ToastContainer toasts={toasts} onClose={removeToast} />
         {/* Navigation */}
         <nav className="bg-white shadow-sm border-b">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">

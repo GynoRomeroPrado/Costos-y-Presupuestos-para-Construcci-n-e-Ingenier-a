@@ -1,11 +1,29 @@
-import { Package, ClipboardList, Calculator, FolderKanban } from 'lucide-react';
+import { useQuery } from '@tanstack/react-query';
+import { Package, ClipboardList, Calculator, FolderKanban, TrendingUp } from 'lucide-react';
+import { proyectosService } from '../services/proyectos.service';
+import { insumosService } from '../services/insumos.service';
 
 export default function HomePage() {
+  const { data: proyectos, isLoading: loadingProyectos } = useQuery({
+    queryKey: ['proyectos'],
+    queryFn: () => proyectosService.getAll({ limit: 10 }),
+  });
+
+  const { data: insumosData, isLoading: loadingInsumos } = useQuery({
+    queryKey: ['insumos'],
+    queryFn: () => insumosService.getAll({ limit: 10 }),
+  });
+
+  const totalProyectos = proyectos?.total || 0;
+  const totalInsumos = insumosData?.total || 0;
+  const proyectosActivos = proyectos?.items?.filter((p: any) => p.estado === 'activo')?.length || 0;
+  const presupuestoTotal = proyectos?.items?.reduce((sum: number, p: any) => sum + (p.presupuestoTotal || 0), 0) || 0;
+
   const stats = [
-    { name: 'Insumos', value: '0', icon: Package, color: 'bg-blue-500' },
-    { name: 'Partidas', value: '0', icon: ClipboardList, color: 'bg-green-500' },
-    { name: 'ACUs', value: '0', icon: Calculator, color: 'bg-purple-500' },
-    { name: 'Proyectos', value: '0', icon: FolderKanban, color: 'bg-orange-500' },
+    { name: 'Proyectos Activos', value: proyectosActivos.toString(), icon: FolderKanban, color: 'bg-blue-500' },
+    { name: 'Total Insumos', value: totalInsumos.toString(), icon: Package, color: 'bg-green-500' },
+    { name: 'Total Proyectos', value: totalProyectos.toString(), icon: Calculator, color: 'bg-purple-500' },
+    { name: 'Presupuesto Total', value: 'S/ ' + presupuestoTotal.toLocaleString('es-PE', {maximumFractionDigits: 0}), icon: TrendingUp, color: 'bg-orange-500' },
   ];
 
   return (
