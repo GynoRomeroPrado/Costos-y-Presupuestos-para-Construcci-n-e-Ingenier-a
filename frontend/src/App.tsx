@@ -11,6 +11,7 @@ import AcuPage from '@/pages/AcuPage';
 import ProyectosPage from '@/pages/ProyectosPage';
 import ProveedoresPage from '@/pages/ProveedoresPage';
 import ReportsPage from '@/pages/ReportsPage';
+import SettingsPage from '@/pages/SettingsPage';
 
 function App() {
   const { toasts, removeToast } = useToastStore();
@@ -82,9 +83,13 @@ function App() {
                 </div>
               </div>
               <div className="flex items-center">
-                <button className="p-2 rounded-md text-gray-400 hover:text-gray-500 hover:bg-gray-100">
+                <Link
+                  to="/configuracion"
+                  className="p-2 rounded-md text-gray-400 hover:text-gray-500 hover:bg-gray-100"
+                  title="Configuración"
+                >
                   <Settings className="w-5 h-5" />
-                </button>
+                </Link>
               </div>
             </div>
           </div>
@@ -100,6 +105,7 @@ function App() {
             <Route path="/proyectos" element={<ProyectosPage />} />
             <Route path="/proveedores" element={<ProveedoresPage />} />
             <Route path="/reportes" element={<ReportsPage />} />
+            <Route path="/configuracion" element={<SettingsPage />} />
           </Routes>
         </main>
       </div>
