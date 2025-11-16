@@ -4,6 +4,7 @@ import { partidasService, Partida, CreatePartidaDto } from '../services/partidas
 import { Plus, Eye, Edit, Trash2, Search } from 'lucide-react';
 import { PartidaForm } from '../components/PartidaForm';
 import { Pagination } from '../components/Pagination';
+import { TableSkeleton } from '../components/TableSkeleton';
 import { useToast } from '../hooks/useToast';
 
 export default function PartidasPage() {
@@ -140,9 +141,7 @@ export default function PartidasPage() {
       </div>
 
       {isLoading ? (
-        <div className="bg-white shadow rounded-lg p-12 text-center">
-          <p className="text-gray-500">Cargando partidas...</p>
-        </div>
+        <TableSkeleton rows={5} columns={5} />
       ) : (
         <div className="bg-white shadow rounded-lg overflow-hidden">
           <table className="min-w-full divide-y divide-gray-200">

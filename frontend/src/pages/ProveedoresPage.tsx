@@ -7,6 +7,7 @@ import {
 } from '../services/proveedores.service';
 import { Plus, Edit, Trash2, Building2, Mail, Phone, MapPin } from 'lucide-react';
 import { ProveedorForm } from '../components/ProveedorForm';
+import { CardSkeleton } from '../components/CardSkeleton';
 import { useToast } from '../hooks/useToast';
 
 export default function ProveedoresPage() {
@@ -145,9 +146,7 @@ export default function ProveedoresPage() {
       </div>
 
       {isLoading ? (
-        <div className="bg-white shadow rounded-lg p-12 text-center">
-          <p className="text-gray-500">Cargando proveedores...</p>
-        </div>
+        <CardSkeleton cards={6} columns={3} />
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {data?.map((proveedor: Proveedor) => (

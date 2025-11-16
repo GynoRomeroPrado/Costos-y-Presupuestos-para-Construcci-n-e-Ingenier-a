@@ -7,6 +7,7 @@ import { ProyectoForm } from '../components/ProyectoForm';
 import { MetradosEditor } from '../components/MetradosEditor';
 import { ProyectoDetailModal } from '../components/ProyectoDetailModal';
 import { Pagination } from '../components/Pagination';
+import { TableSkeleton } from '../components/TableSkeleton';
 import { useToast } from '../hooks/useToast';
 
 export default function ProyectosPage() {
@@ -177,9 +178,7 @@ export default function ProyectosPage() {
       </div>
 
       {isLoading ? (
-        <div className="bg-white shadow rounded-lg p-12 text-center">
-          <p className="text-gray-500">Cargando proyectos...</p>
-        </div>
+        <TableSkeleton rows={5} columns={6} />
       ) : (
         <div className="bg-white shadow rounded-lg overflow-hidden">
           <table className="min-w-full divide-y divide-gray-200">

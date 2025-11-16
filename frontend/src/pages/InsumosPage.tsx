@@ -4,6 +4,7 @@ import { insumosService, Insumo, CreateInsumoDto } from '../services/insumos.ser
 import { Download, Upload, Plus, Eye, Trash2, Edit, Search } from 'lucide-react';
 import { InsumoForm } from '../components/InsumoForm';
 import { Pagination } from '../components/Pagination';
+import { TableSkeleton } from '../components/TableSkeleton';
 import { useToast } from '../hooks/useToast';
 
 export default function InsumosPage() {
@@ -218,9 +219,7 @@ export default function InsumosPage() {
       </div>
 
       {isLoading ? (
-        <div className="bg-white shadow rounded-lg p-12 text-center">
-          <p className="text-gray-500">Cargando insumos...</p>
-        </div>
+        <TableSkeleton rows={5} columns={6} />
       ) : (
         <div className="bg-white shadow rounded-lg overflow-hidden">
           <table className="min-w-full divide-y divide-gray-200">
