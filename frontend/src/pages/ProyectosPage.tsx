@@ -6,6 +6,7 @@ import { format } from 'date-fns';
 import { ProyectoForm } from '../components/ProyectoForm';
 import { MetradosEditor } from '../components/MetradosEditor';
 import { ProyectoDetailModal } from '../components/ProyectoDetailModal';
+import { Pagination } from '../components/Pagination';
 import { useToast } from '../hooks/useToast';
 
 export default function ProyectosPage() {
@@ -20,10 +21,12 @@ export default function ProyectosPage() {
   const [metradosProyectoId, setMetradosProyectoId] = useState<string>('');
   const [isDetailOpen, setIsDetailOpen] = useState(false);
   const [detailProyecto, setDetailProyecto] = useState<Proyecto | null>(null);
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 10;
 
   const { data, isLoading } = useQuery({
-    queryKey: ['proyectos'],
-    queryFn: () => proyectosService.getAll(),
+    queryKey: ['proyectos', currentPage],
+    queryFn: () => proyectosService.getAll({ page: currentPage, limit: itemsPerPage }),
   });
 
   const descargarExcelMutation = useMutation({
@@ -303,6 +306,17 @@ export default function ProyectosPage() {
             </div>
           )}
         </div>
+      )}
+
+      {/* Paginación */}
+      {!isLoading && data?.items && data.items.length > 0 && (
+        <Pagination
+          currentPage={currentPage}
+          totalPages={Math.ceil((data.total || 0) / itemsPerPage)}
+          onPageChange={setCurrentPage}
+          totalItems={data.total || 0}
+          itemsPerPage={itemsPerPage}
+        />
       )}
 
       {/* Modal de Importación */}

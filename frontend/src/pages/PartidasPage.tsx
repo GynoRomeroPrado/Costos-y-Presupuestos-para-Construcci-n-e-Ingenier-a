@@ -3,6 +3,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { partidasService, Partida, CreatePartidaDto } from '../services/partidas.service';
 import { Plus, Eye, Edit, Trash2, Search } from 'lucide-react';
 import { PartidaForm } from '../components/PartidaForm';
+import { Pagination } from '../components/Pagination';
 import { useToast } from '../hooks/useToast';
 
 export default function PartidasPage() {
@@ -12,13 +13,17 @@ export default function PartidasPage() {
   const [searchTerm, setSearchTerm] = useState<string>('');
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [editingPartida, setEditingPartida] = useState<Partida | undefined>();
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 10;
 
   const { data, isLoading } = useQuery({
-    queryKey: ['partidas', especialidadFilter, searchTerm],
+    queryKey: ['partidas', especialidadFilter, searchTerm, currentPage],
     queryFn: () =>
       partidasService.getAll({
         especialidad: especialidadFilter || undefined,
         search: searchTerm || undefined,
+        page: currentPage,
+        limit: itemsPerPage,
       }),
   });
 
@@ -213,6 +218,17 @@ export default function PartidasPage() {
             </div>
           )}
         </div>
+      )}
+
+      {/* Paginación */}
+      {!isLoading && data?.items && data.items.length > 0 && (
+        <Pagination
+          currentPage={currentPage}
+          totalPages={Math.ceil((data.total || 0) / itemsPerPage)}
+          onPageChange={setCurrentPage}
+          totalItems={data.total || 0}
+          itemsPerPage={itemsPerPage}
+        />
       )}
 
       {/* Formulario de Partida */}

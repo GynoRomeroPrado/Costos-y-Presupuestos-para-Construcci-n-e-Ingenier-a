@@ -3,6 +3,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { insumosService, Insumo, CreateInsumoDto } from '../services/insumos.service';
 import { Download, Upload, Plus, Eye, Trash2, Edit, Search } from 'lucide-react';
 import { InsumoForm } from '../components/InsumoForm';
+import { Pagination } from '../components/Pagination';
 import { useToast } from '../hooks/useToast';
 
 export default function InsumosPage() {
@@ -14,10 +15,16 @@ export default function InsumosPage() {
   const [searchTerm, setSearchTerm] = useState<string>('');
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [editingInsumo, setEditingInsumo] = useState<Insumo | undefined>();
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 10;
 
   const { data, isLoading } = useQuery({
-    queryKey: ['insumos', tipoFilter],
-    queryFn: () => insumosService.getAll({ tipo: tipoFilter || undefined }),
+    queryKey: ['insumos', tipoFilter, currentPage],
+    queryFn: () => insumosService.getAll({
+      tipo: tipoFilter || undefined,
+      page: currentPage,
+      limit: itemsPerPage
+    }),
   });
 
   // Filter data on client side for search
@@ -306,6 +313,17 @@ export default function InsumosPage() {
             </div>
           )}
         </div>
+      )}
+
+      {/* Paginación */}
+      {!isLoading && filteredData && filteredData.length > 0 && !searchTerm && (
+        <Pagination
+          currentPage={currentPage}
+          totalPages={Math.ceil((data.total || 0) / itemsPerPage)}
+          onPageChange={setCurrentPage}
+          totalItems={data.total || 0}
+          itemsPerPage={itemsPerPage}
+        />
       )}
 
       {/* Modal de Importación */}
