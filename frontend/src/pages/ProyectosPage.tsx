@@ -5,6 +5,7 @@ import { Download, FileSpreadsheet, FileText, Upload, Plus, Eye, Trash2, Edit, L
 import { format } from 'date-fns';
 import { ProyectoForm } from '../components/ProyectoForm';
 import { MetradosEditor } from '../components/MetradosEditor';
+import { ProyectoDetailModal } from '../components/ProyectoDetailModal';
 import { useToast } from '../hooks/useToast';
 
 export default function ProyectosPage() {
@@ -17,6 +18,8 @@ export default function ProyectosPage() {
   const [editingProyecto, setEditingProyecto] = useState<Proyecto | undefined>();
   const [isMetradosEditorOpen, setIsMetradosEditorOpen] = useState(false);
   const [metradosProyectoId, setMetradosProyectoId] = useState<string>('');
+  const [isDetailOpen, setIsDetailOpen] = useState(false);
+  const [detailProyecto, setDetailProyecto] = useState<Proyecto | null>(null);
 
   const { data, isLoading } = useQuery({
     queryKey: ['proyectos'],
@@ -263,7 +266,14 @@ export default function ProyectosPage() {
                       >
                         <List className="h-5 w-5" />
                       </button>
-                      <button className="text-gray-600 hover:text-gray-900" title="Ver Detalles">
+                      <button
+                        onClick={() => {
+                          setDetailProyecto(proyecto);
+                          setIsDetailOpen(true);
+                        }}
+                        className="text-gray-600 hover:text-gray-900"
+                        title="Ver Detalles"
+                      >
                         <Eye className="h-5 w-5" />
                       </button>
                       <button
@@ -370,6 +380,16 @@ export default function ProyectosPage() {
           setMetradosProyectoId('');
         }}
         proyectoIdProp={metradosProyectoId}
+      />
+
+      {/* Detalle del Proyecto */}
+      <ProyectoDetailModal
+        isOpen={isDetailOpen}
+        onClose={() => {
+          setIsDetailOpen(false);
+          setDetailProyecto(null);
+        }}
+        proyecto={detailProyecto}
       />
     </div>
   );
