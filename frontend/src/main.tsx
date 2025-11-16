@@ -8,8 +8,14 @@ const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
       refetchOnWindowFocus: false,
+      refetchOnMount: false,
+      refetchOnReconnect: false,
       retry: 1,
-      staleTime: 5 * 60 * 1000, // 5 minutos
+      staleTime: 5 * 60 * 1000, // 5 minutos - datos se consideran frescos
+      gcTime: 10 * 60 * 1000, // 10 minutos - tiempo antes de garbage collection
+    },
+    mutations: {
+      retry: 1,
     },
   },
 });

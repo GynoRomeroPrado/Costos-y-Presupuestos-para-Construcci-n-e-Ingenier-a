@@ -3,8 +3,10 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { acuService, Acu, CreateAcuDto } from '../services/acu.service';
 import { partidasService } from '../services/partidas.service';
 import { insumosService } from '../services/insumos.service';
-import { Plus, Eye, Copy, Power, Calculator } from 'lucide-react';
+import { Plus, Eye, Copy, Power, Calculator, Search } from 'lucide-react';
 import { AcuForm } from '../components/AcuForm';
+import { Pagination } from '../components/Pagination';
+import { TableSkeleton } from '../components/TableSkeleton';
 import { useToast } from '../hooks/useToast';
 
 export default function AcuPage() {
@@ -13,10 +15,24 @@ export default function AcuPage() {
   const [selectedAcu, setSelectedAcu] = useState<Acu | null>(null);
   const [showDetalle, setShowDetalle] = useState(false);
   const [isFormOpen, setIsFormOpen] = useState(false);
+  const [searchTerm, setSearchTerm] = useState<string>('');
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 10;
 
   const { data, isLoading } = useQuery({
-    queryKey: ['acus'],
-    queryFn: () => acuService.getAll(),
+    queryKey: ['acus', currentPage],
+    queryFn: () => acuService.getAll({ page: currentPage, limit: itemsPerPage }),
+  });
+
+  // Client-side search filter
+  const filteredData = data?.items?.filter((acu: Acu) => {
+    if (!searchTerm) return true;
+    const search = searchTerm.toLowerCase();
+    return (
+      acu.codigo.toLowerCase().includes(search) ||
+      acu.partida?.codigo?.toLowerCase().includes(search) ||
+      acu.partida?.nombre?.toLowerCase().includes(search)
+    );
   });
 
   const { data: partidas } = useQuery({
@@ -106,10 +122,24 @@ export default function AcuPage() {
         </button>
       </div>
 
-      {isLoading ? (
-        <div className="bg-white shadow rounded-lg p-12 text-center">
-          <p className="text-gray-500">Cargando ACUs...</p>
+      {/* Search Bar */}
+      <div className="mb-4">
+        <div className="relative">
+          <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+            <Search className="h-5 w-5 text-gray-400" />
+          </div>
+          <input
+            type="text"
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md leading-5 bg-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+            placeholder="Buscar por código ACU o partida..."
+          />
         </div>
+      </div>
+
+      {isLoading ? (
+        <TableSkeleton rows={5} columns={7} />
       ) : (
         <div className="bg-white shadow rounded-lg overflow-hidden">
           <table className="min-w-full divide-y divide-gray-200">
@@ -139,7 +169,7 @@ export default function AcuPage() {
               </tr>
             </thead>
             <tbody className="bg-white divide-y divide-gray-200">
-              {data?.items?.map((acu: Acu) => (
+              {filteredData?.map((acu: Acu) => (
                 <tr key={acu.id} className="hover:bg-gray-50">
                   <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
                     {acu.codigo}
@@ -213,12 +243,27 @@ export default function AcuPage() {
             </tbody>
           </table>
 
-          {(!data?.items || data.items.length === 0) && (
+          {(!filteredData || filteredData.length === 0) && (
             <div className="text-center py-12">
-              <p className="text-gray-500">No hay ACUs registrados</p>
+              <p className="text-gray-500">
+                {searchTerm
+                  ? 'No se encontraron ACUs con los filtros aplicados'
+                  : 'No hay ACUs registrados'}
+              </p>
             </div>
           )}
         </div>
+      )}
+
+      {/* Paginación */}
+      {!isLoading && filteredData && filteredData.length > 0 && !searchTerm && (
+        <Pagination
+          currentPage={currentPage}
+          totalPages={Math.ceil((data.total || 0) / itemsPerPage)}
+          onPageChange={setCurrentPage}
+          totalItems={data.total || 0}
+          itemsPerPage={itemsPerPage}
+        />
       )}
 
       {/* Modal de Detalle */}
