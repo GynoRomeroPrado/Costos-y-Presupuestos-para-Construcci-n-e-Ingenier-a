@@ -1,5 +1,5 @@
 import { BrowserRouter as Router, Routes, Route, Link } from 'react-router-dom';
-import { Home, Package, ClipboardList, Calculator, FolderKanban, Settings } from 'lucide-react';
+import { Home, Package, ClipboardList, Calculator, FolderKanban, Truck, Settings } from 'lucide-react';
 import { ToastContainer } from '@/components/Toast';
 import { useToastStore } from '@/hooks/useToast';
 
@@ -9,6 +9,7 @@ import InsumosPage from '@/pages/InsumosPage';
 import PartidasPage from '@/pages/PartidasPage';
 import AcuPage from '@/pages/AcuPage';
 import ProyectosPage from '@/pages/ProyectosPage';
+import ProveedoresPage from '@/pages/ProveedoresPage';
 
 function App() {
   const { toasts, removeToast } = useToastStore();
@@ -63,6 +64,13 @@ function App() {
                     <FolderKanban className="w-4 h-4 mr-2" />
                     Proyectos
                   </Link>
+                  <Link
+                    to="/proveedores"
+                    className="inline-flex items-center px-1 pt-1 border-b-2 border-transparent text-sm font-medium text-gray-500 hover:border-gray-300 hover:text-gray-700"
+                  >
+                    <Truck className="w-4 h-4 mr-2" />
+                    Proveedores
+                  </Link>
                 </div>
               </div>
               <div className="flex items-center">
@@ -82,6 +90,7 @@ function App() {
             <Route path="/partidas" element={<PartidasPage />} />
             <Route path="/acu" element={<AcuPage />} />
             <Route path="/proyectos" element={<ProyectosPage />} />
+            <Route path="/proveedores" element={<ProveedoresPage />} />
           </Routes>
         </main>
       </div>
