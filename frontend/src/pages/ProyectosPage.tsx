@@ -1,14 +1,22 @@
 import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { proyectosService, Proyecto } from '../services/proyectos.service';
-import { Download, FileSpreadsheet, FileText, Upload, Plus, Eye, Trash2 } from 'lucide-react';
+import { proyectosService, Proyecto, CreateProyectoDto } from '../services/proyectos.service';
+import { Download, FileSpreadsheet, FileText, Upload, Plus, Eye, Trash2, Edit, List } from 'lucide-react';
 import { format } from 'date-fns';
+import { ProyectoForm } from '../components/ProyectoForm';
+import { MetradosEditor } from '../components/MetradosEditor';
+import { useToast } from '../hooks/useToast';
 
 export default function ProyectosPage() {
   const queryClient = useQueryClient();
+  const toast = useToast();
   const [selectedProyecto, setSelectedProyecto] = useState<Proyecto | null>(null);
   const [showImportModal, setShowImportModal] = useState(false);
   const [importFile, setImportFile] = useState<File | null>(null);
+  const [isFormOpen, setIsFormOpen] = useState(false);
+  const [editingProyecto, setEditingProyecto] = useState<Proyecto | undefined>();
+  const [isMetradosEditorOpen, setIsMetradosEditorOpen] = useState(false);
+  const [metradosProyectoId, setMetradosProyectoId] = useState<string>('');
 
   const { data, isLoading } = useQuery({
     queryKey: ['proyectos'],
@@ -70,6 +78,63 @@ export default function ProyectosPage() {
     },
   });
 
+  const createMutation = useMutation({
+    mutationFn: (data: CreateProyectoDto) => proyectosService.create(data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['proyectos'] });
+      toast.success('Proyecto creado exitosamente');
+      setIsFormOpen(false);
+      setEditingProyecto(undefined);
+    },
+    onError: () => {
+      toast.error('Error al crear proyecto');
+    },
+  });
+
+  const updateMutation = useMutation({
+    mutationFn: ({ id, data }: { id: string; data: CreateProyectoDto }) =>
+      proyectosService.update(id, data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['proyectos'] });
+      toast.success('Proyecto actualizado exitosamente');
+      setIsFormOpen(false);
+      setEditingProyecto(undefined);
+    },
+    onError: () => {
+      toast.error('Error al actualizar proyecto');
+    },
+  });
+
+  const deleteMutation = useMutation({
+    mutationFn: (id: string) => proyectosService.delete(id),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['proyectos'] });
+      toast.success('Proyecto eliminado exitosamente');
+    },
+    onError: () => {
+      toast.error('Error al eliminar proyecto');
+    },
+  });
+
+  const handleFormSubmit = (data: CreateProyectoDto) => {
+    if (editingProyecto) {
+      updateMutation.mutate({ id: editingProyecto.id, data });
+    } else {
+      createMutation.mutate(data);
+    }
+  };
+
+  const handleEdit = (proyecto: Proyecto) => {
+    setEditingProyecto(proyecto);
+    setIsFormOpen(true);
+  };
+
+  const handleDelete = (id: string, nombre: string) => {
+    if (confirm(`¿Estás seguro de eliminar el proyecto "${nombre}"?`)) {
+      deleteMutation.mutate(id);
+    }
+  };
+
   const handleImportSubmit = () => {
     if (selectedProyecto && importFile) {
       importarMetradosMutation.mutate({
@@ -93,7 +158,13 @@ export default function ProyectosPage() {
             Administra proyectos, metrados y presupuestos.
           </p>
         </div>
-        <button className="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+        <button
+          onClick={() => {
+            setEditingProyecto(undefined);
+            setIsFormOpen(true);
+          }}
+          className="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+        >
           <Plus className="h-5 w-5 mr-2" />
           Nuevo Proyecto
         </button>
@@ -182,8 +253,32 @@ export default function ProyectosPage() {
                       >
                         <Upload className="h-5 w-5" />
                       </button>
+                      <button
+                        onClick={() => {
+                          setMetradosProyectoId(proyecto.id);
+                          setIsMetradosEditorOpen(true);
+                        }}
+                        className="text-indigo-600 hover:text-indigo-900"
+                        title="Editor de Metrados"
+                      >
+                        <List className="h-5 w-5" />
+                      </button>
                       <button className="text-gray-600 hover:text-gray-900" title="Ver Detalles">
                         <Eye className="h-5 w-5" />
+                      </button>
+                      <button
+                        onClick={() => handleEdit(proyecto)}
+                        className="text-purple-600 hover:text-purple-900"
+                        title="Editar"
+                      >
+                        <Edit className="h-5 w-5" />
+                      </button>
+                      <button
+                        onClick={() => handleDelete(proyecto.id, proyecto.nombre)}
+                        className="text-red-600 hover:text-red-900"
+                        title="Eliminar"
+                      >
+                        <Trash2 className="h-5 w-5" />
                       </button>
                     </div>
                   </td>
@@ -254,6 +349,28 @@ export default function ProyectosPage() {
           </div>
         </div>
       )}
+
+      {/* Formulario de Proyecto */}
+      <ProyectoForm
+        isOpen={isFormOpen}
+        onClose={() => {
+          setIsFormOpen(false);
+          setEditingProyecto(undefined);
+        }}
+        onSubmit={handleFormSubmit}
+        proyecto={editingProyecto}
+        isLoading={createMutation.isPending || updateMutation.isPending}
+      />
+
+      {/* Editor de Metrados */}
+      <MetradosEditor
+        isOpen={isMetradosEditorOpen}
+        onClose={() => {
+          setIsMetradosEditorOpen(false);
+          setMetradosProyectoId('');
+        }}
+        proyectoIdProp={metradosProyectoId}
+      />
     </div>
   );
 }

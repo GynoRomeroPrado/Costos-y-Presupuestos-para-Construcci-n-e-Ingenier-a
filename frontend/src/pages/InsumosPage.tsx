@@ -1,13 +1,18 @@
 import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { insumosService, Insumo } from '../services/insumos.service';
-import { Download, Upload, Plus, Eye, Trash2 } from 'lucide-react';
+import { insumosService, Insumo, CreateInsumoDto } from '../services/insumos.service';
+import { Download, Upload, Plus, Eye, Trash2, Edit } from 'lucide-react';
+import { InsumoForm } from '../components/InsumoForm';
+import { useToast } from '../hooks/useToast';
 
 export default function InsumosPage() {
   const queryClient = useQueryClient();
+  const toast = useToast();
   const [showImportModal, setShowImportModal] = useState(false);
   const [importFile, setImportFile] = useState<File | null>(null);
   const [tipoFilter, setTipoFilter] = useState<string>('');
+  const [isFormOpen, setIsFormOpen] = useState(false);
+  const [editingInsumo, setEditingInsumo] = useState<Insumo | undefined>();
 
   const { data, isLoading } = useQuery({
     queryKey: ['insumos', tipoFilter],
@@ -42,6 +47,63 @@ export default function InsumosPage() {
       document.body.removeChild(a);
     },
   });
+
+  const createMutation = useMutation({
+    mutationFn: (data: CreateInsumoDto) => insumosService.create(data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['insumos'] });
+      toast.success('Insumo creado exitosamente');
+      setIsFormOpen(false);
+      setEditingInsumo(undefined);
+    },
+    onError: () => {
+      toast.error('Error al crear insumo');
+    },
+  });
+
+  const updateMutation = useMutation({
+    mutationFn: ({ id, data }: { id: string; data: CreateInsumoDto }) =>
+      insumosService.update(id, data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['insumos'] });
+      toast.success('Insumo actualizado exitosamente');
+      setIsFormOpen(false);
+      setEditingInsumo(undefined);
+    },
+    onError: () => {
+      toast.error('Error al actualizar insumo');
+    },
+  });
+
+  const deleteMutation = useMutation({
+    mutationFn: (id: string) => insumosService.delete(id),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['insumos'] });
+      toast.success('Insumo eliminado exitosamente');
+    },
+    onError: () => {
+      toast.error('Error al eliminar insumo');
+    },
+  });
+
+  const handleFormSubmit = (data: CreateInsumoDto) => {
+    if (editingInsumo) {
+      updateMutation.mutate({ id: editingInsumo.id, data });
+    } else {
+      createMutation.mutate(data);
+    }
+  };
+
+  const handleEdit = (insumo: Insumo) => {
+    setEditingInsumo(insumo);
+    setIsFormOpen(true);
+  };
+
+  const handleDelete = (id: string, nombre: string) => {
+    if (confirm(`¿Estás seguro de eliminar el insumo "${nombre}"?`)) {
+      deleteMutation.mutate(id);
+    }
+  };
 
   const handleImportSubmit = () => {
     if (importFile) {
@@ -96,7 +158,13 @@ export default function InsumosPage() {
             <Upload className="h-5 w-5 mr-2" />
             Importar Excel
           </button>
-          <button className="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700">
+          <button
+            onClick={() => {
+              setEditingInsumo(undefined);
+              setIsFormOpen(true);
+            }}
+            className="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700"
+          >
             <Plus className="h-5 w-5 mr-2" />
             Nuevo Insumo
           </button>
@@ -184,7 +252,18 @@ export default function InsumosPage() {
                       <button className="text-blue-600 hover:text-blue-900" title="Ver Detalle">
                         <Eye className="h-5 w-5" />
                       </button>
-                      <button className="text-red-600 hover:text-red-900" title="Eliminar">
+                      <button
+                        onClick={() => handleEdit(insumo)}
+                        className="text-purple-600 hover:text-purple-900"
+                        title="Editar"
+                      >
+                        <Edit className="h-5 w-5" />
+                      </button>
+                      <button
+                        onClick={() => handleDelete(insumo.id, insumo.nombre)}
+                        className="text-red-600 hover:text-red-900"
+                        title="Eliminar"
+                      >
                         <Trash2 className="h-5 w-5" />
                       </button>
                     </div>
@@ -264,6 +343,18 @@ export default function InsumosPage() {
           </div>
         </div>
       )}
+
+      {/* Formulario de Insumo */}
+      <InsumoForm
+        isOpen={isFormOpen}
+        onClose={() => {
+          setIsFormOpen(false);
+          setEditingInsumo(undefined);
+        }}
+        onSubmit={handleFormSubmit}
+        insumo={editingInsumo}
+        isLoading={createMutation.isPending || updateMutation.isPending}
+      />
     </div>
   );
 }

@@ -1,14 +1,18 @@
 import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { acuService, Acu } from '../services/acu.service';
+import { acuService, Acu, CreateAcuDto } from '../services/acu.service';
 import { partidasService } from '../services/partidas.service';
 import { insumosService } from '../services/insumos.service';
 import { Plus, Eye, Copy, Power, Calculator } from 'lucide-react';
+import { AcuForm } from '../components/AcuForm';
+import { useToast } from '../hooks/useToast';
 
 export default function AcuPage() {
   const queryClient = useQueryClient();
+  const toast = useToast();
   const [selectedAcu, setSelectedAcu] = useState<Acu | null>(null);
   const [showDetalle, setShowDetalle] = useState(false);
+  const [isFormOpen, setIsFormOpen] = useState(false);
 
   const { data, isLoading } = useQuery({
     queryKey: ['acus'],
@@ -20,11 +24,26 @@ export default function AcuPage() {
     queryFn: () => partidasService.getAll(),
   });
 
+  const createMutation = useMutation({
+    mutationFn: (data: CreateAcuDto) => acuService.create(data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['acus'] });
+      toast.success('ACU creado exitosamente');
+      setIsFormOpen(false);
+    },
+    onError: () => {
+      toast.error('Error al crear ACU');
+    },
+  });
+
   const duplicarMutation = useMutation({
     mutationFn: (id: string) => acuService.duplicar(id),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['acus'] });
-      alert('ACU duplicado exitosamente');
+      toast.success('ACU duplicado exitosamente');
+    },
+    onError: () => {
+      toast.error('Error al duplicar ACU');
     },
   });
 
@@ -32,7 +51,10 @@ export default function AcuPage() {
     mutationFn: (id: string) => acuService.desactivar(id),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['acus'] });
-      alert('ACU desactivado');
+      toast.success('ACU desactivado');
+    },
+    onError: () => {
+      toast.error('Error al desactivar ACU');
     },
   });
 
@@ -75,7 +97,10 @@ export default function AcuPage() {
             Gestiona análisis de costos unitarios y composiciones de partidas.
           </p>
         </div>
-        <button className="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700">
+        <button
+          onClick={() => setIsFormOpen(true)}
+          className="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700"
+        >
           <Plus className="h-5 w-5 mr-2" />
           Nuevo ACU
         </button>
@@ -339,6 +364,14 @@ export default function AcuPage() {
           </div>
         </div>
       )}
+
+      {/* Formulario de ACU */}
+      <AcuForm
+        isOpen={isFormOpen}
+        onClose={() => setIsFormOpen(false)}
+        onSubmit={(data) => createMutation.mutate(data)}
+        isLoading={createMutation.isPending}
+      />
     </div>
   );
 }
