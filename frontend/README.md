@@ -291,12 +291,99 @@ module.exports = {
    - Visualizar analíticas en dashboard
    - Revisar reportes consolidados
 
+## 🔧 Custom Hooks
+
+El sistema incluye hooks personalizados para funcionalidades comunes:
+
+### Storage Hooks
+
+```typescript
+import { useLocalStorage, useSessionStorage } from '@/hooks';
+
+// Persistencia con localStorage (sincronizado entre pestañas)
+const [user, setUser, removeUser] = useLocalStorage('user', { name: '' });
+
+// Persistencia con sessionStorage
+const [filters, setFilters, clearFilters] = useSessionStorage('filters', {});
+```
+
+### Pagination Hook
+
+```typescript
+import { usePagination, useLocalPagination } from '@/hooks';
+
+// Para paginación server-side
+const {
+  currentPage,
+  goToPage,
+  nextPage,
+  previousPage,
+  canGoNext,
+  canGoPrevious,
+  totalPages
+} = usePagination({
+  initialPage: 1,
+  pageSize: 10,
+  totalItems: 100
+});
+
+// Para paginación client-side
+const { items, currentPage, goToPage } = useLocalPagination(allItems, {
+  pageSize: 10
+});
+```
+
+### Search & Filter Hooks
+
+```typescript
+import { useSearch, useFilter, useSearchAndFilter } from '@/hooks';
+
+// Búsqueda con debounce
+const { searchTerm, setSearchTerm, filteredItems } = useSearch(items, {
+  searchFields: ['nombre', 'codigo'],
+  debounceMs: 300
+});
+
+// Filtrado por criterios
+const filtered = useFilter(items, { tipo: 'material', activo: true });
+
+// Búsqueda + Filtrado combinado
+const { filteredItems, totalItems } = useSearchAndFilter(
+  items,
+  { searchFields: ['nombre'] },
+  { tipo: 'material' }
+);
+```
+
+### Performance Hooks
+
+```typescript
+import {
+  usePerformance,
+  useWhyDidYouUpdate,
+  useLoadingTime,
+  useDebounce
+} from '@/hooks';
+
+// Medir performance de componente
+usePerformance('MyComponent');
+
+// Detectar re-renders innecesarios (solo dev)
+useWhyDidYouUpdate('MyComponent', props);
+
+// Medir tiempo de carga
+useLoadingTime('DataFetch', isLoading);
+
+// Debounce de valores
+const debouncedSearch = useDebounce(searchTerm, 500);
+```
+
 ## 🔧 Utilidades Disponibles
 
 ### Formatters
 
 ```typescript
-import { formatCurrency, getTipoColor, formatPercentage } from '@/utils/formatters';
+import { formatCurrency, getTipoColor, formatPercentage } from '@/utils';
 
 formatCurrency(1500.50, 'PEN');  // "S/ 1,500.50"
 getTipoColor('material');         // "bg-blue-100 text-blue-800"
