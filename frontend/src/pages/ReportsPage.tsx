@@ -14,7 +14,7 @@ import { insumosService } from '../services/insumos.service';
 import { partidasService } from '../services/partidas.service';
 import { acuService } from '../services/acu.service';
 import { proveedoresService } from '../services/proveedores.service';
-import { formatCurrency } from '../utils/formatters';
+import { formatCurrency } from '@/utils';
 import {
   BarChart,
   Bar,

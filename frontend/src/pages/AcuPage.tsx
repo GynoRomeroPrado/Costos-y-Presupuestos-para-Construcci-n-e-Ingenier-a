@@ -7,8 +7,9 @@ import { Plus, Eye, Copy, Power, Calculator, Search } from 'lucide-react';
 import { AcuForm } from '../components/AcuForm';
 import { Pagination } from '../components/Pagination';
 import { TableSkeleton } from '../components/TableSkeleton';
-import { formatCurrency, getTipoColor } from '../utils/formatters';
-import { useToast } from '../hooks/useToast';
+import { formatCurrency, getTipoColor } from '@/utils';
+import { useToast } from '@/hooks';
+import { queryKeys } from '../constants/queryKeys';
 
 export default function AcuPage() {
   const queryClient = useQueryClient();
@@ -21,7 +22,7 @@ export default function AcuPage() {
   const itemsPerPage = 10;
 
   const { data, isLoading } = useQuery({
-    queryKey: ['acus', currentPage],
+    queryKey: queryKeys.acu.list({ page: currentPage }),
     queryFn: () => acuService.getAll({ page: currentPage, limit: itemsPerPage }),
   });
 
@@ -44,7 +45,7 @@ export default function AcuPage() {
   const createMutation = useMutation({
     mutationFn: (data: CreateAcuDto) => acuService.create(data),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['acus'] });
+      queryClient.invalidateQueries({ queryKey: queryKeys.acu.all });
       toast.success('ACU creado exitosamente');
       setIsFormOpen(false);
     },
@@ -56,7 +57,7 @@ export default function AcuPage() {
   const duplicarMutation = useMutation({
     mutationFn: (id: string) => acuService.duplicar(id),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['acus'] });
+      queryClient.invalidateQueries({ queryKey: queryKeys.acu.all });
       toast.success('ACU duplicado exitosamente');
     },
     onError: () => {
@@ -67,7 +68,7 @@ export default function AcuPage() {
   const desactivarMutation = useMutation({
     mutationFn: (id: string) => acuService.desactivar(id),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['acus'] });
+      queryClient.invalidateQueries({ queryKey: queryKeys.acu.all });
       toast.success('ACU desactivado');
     },
     onError: () => {
@@ -78,7 +79,7 @@ export default function AcuPage() {
   const calcularMutation = useMutation({
     mutationFn: (id: string) => acuService.calcular(id),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['acus'] });
+      queryClient.invalidateQueries({ queryKey: queryKeys.acu.all });
       if (selectedAcu) {
         setShowDetalle(false);
         setTimeout(() => setShowDetalle(true), 100);

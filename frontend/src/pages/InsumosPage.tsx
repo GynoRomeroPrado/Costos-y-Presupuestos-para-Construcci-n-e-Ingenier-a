@@ -5,8 +5,9 @@ import { Download, Upload, Plus, Eye, Trash2, Edit, Search } from 'lucide-react'
 import { InsumoForm } from '../components/InsumoForm';
 import { Pagination } from '../components/Pagination';
 import { TableSkeleton } from '../components/TableSkeleton';
-import { formatCurrency, getTipoColor, getTipoLabel } from '../utils/formatters';
-import { useToast } from '../hooks/useToast';
+import { formatCurrency, getTipoColor, getTipoLabel } from '@/utils';
+import { useToast } from '@/hooks';
+import { queryKeys } from '../constants/queryKeys';
 
 export default function InsumosPage() {
   const queryClient = useQueryClient();
@@ -21,7 +22,7 @@ export default function InsumosPage() {
   const itemsPerPage = 10;
 
   const { data, isLoading } = useQuery({
-    queryKey: ['insumos', tipoFilter, currentPage],
+    queryKey: queryKeys.insumos.list({ tipo: tipoFilter, page: currentPage }),
     queryFn: () => insumosService.getAll({
       tipo: tipoFilter || undefined,
       page: currentPage,
@@ -46,7 +47,7 @@ export default function InsumosPage() {
       alert(
         `Importación completada:\n✓ Exitosos: ${data.exitosos}\n✗ Fallidos: ${data.fallidos}\nTotal: ${data.total}`
       );
-      queryClient.invalidateQueries({ queryKey: ['insumos'] });
+      queryClient.invalidateQueries({ queryKey: queryKeys.insumos.all });
       setShowImportModal(false);
       setImportFile(null);
     },
@@ -72,7 +73,7 @@ export default function InsumosPage() {
   const createMutation = useMutation({
     mutationFn: (data: CreateInsumoDto) => insumosService.create(data),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['insumos'] });
+      queryClient.invalidateQueries({ queryKey: queryKeys.insumos.all });
       toast.success('Insumo creado exitosamente');
       setIsFormOpen(false);
       setEditingInsumo(undefined);
@@ -86,7 +87,7 @@ export default function InsumosPage() {
     mutationFn: ({ id, data }: { id: string; data: CreateInsumoDto }) =>
       insumosService.update(id, data),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['insumos'] });
+      queryClient.invalidateQueries({ queryKey: queryKeys.insumos.all });
       toast.success('Insumo actualizado exitosamente');
       setIsFormOpen(false);
       setEditingInsumo(undefined);
@@ -99,7 +100,7 @@ export default function InsumosPage() {
   const deleteMutation = useMutation({
     mutationFn: (id: string) => insumosService.delete(id),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['insumos'] });
+      queryClient.invalidateQueries({ queryKey: queryKeys.insumos.all });
       toast.success('Insumo eliminado exitosamente');
     },
     onError: () => {

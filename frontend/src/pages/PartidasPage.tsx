@@ -5,7 +5,8 @@ import { Plus, Eye, Edit, Trash2, Search } from 'lucide-react';
 import { PartidaForm } from '../components/PartidaForm';
 import { Pagination } from '../components/Pagination';
 import { TableSkeleton } from '../components/TableSkeleton';
-import { useToast } from '../hooks/useToast';
+import { useToast } from '@/hooks';
+import { queryKeys } from '../constants/queryKeys';
 
 export default function PartidasPage() {
   const queryClient = useQueryClient();
@@ -18,7 +19,7 @@ export default function PartidasPage() {
   const itemsPerPage = 10;
 
   const { data, isLoading } = useQuery({
-    queryKey: ['partidas', especialidadFilter, searchTerm, currentPage],
+    queryKey: queryKeys.partidas.list({ especialidad: especialidadFilter, search: searchTerm, page: currentPage }),
     queryFn: () =>
       partidasService.getAll({
         especialidad: especialidadFilter || undefined,
@@ -31,7 +32,7 @@ export default function PartidasPage() {
   const createMutation = useMutation({
     mutationFn: (data: CreatePartidaDto) => partidasService.create(data),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['partidas'] });
+      queryClient.invalidateQueries({ queryKey: queryKeys.partidas.all });
       toast.success('Partida creada exitosamente');
       setIsFormOpen(false);
       setEditingPartida(undefined);
@@ -45,7 +46,7 @@ export default function PartidasPage() {
     mutationFn: ({ id, data }: { id: string; data: CreatePartidaDto }) =>
       partidasService.update(id, data),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['partidas'] });
+      queryClient.invalidateQueries({ queryKey: queryKeys.partidas.all });
       toast.success('Partida actualizada exitosamente');
       setIsFormOpen(false);
       setEditingPartida(undefined);
@@ -58,7 +59,7 @@ export default function PartidasPage() {
   const deleteMutation = useMutation({
     mutationFn: (id: string) => partidasService.delete(id),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['partidas'] });
+      queryClient.invalidateQueries({ queryKey: queryKeys.partidas.all });
       toast.success('Partida eliminada exitosamente');
     },
     onError: () => {

@@ -8,8 +8,9 @@ import { MetradosEditor } from '../components/MetradosEditor';
 import { ProyectoDetailModal } from '../components/ProyectoDetailModal';
 import { Pagination } from '../components/Pagination';
 import { TableSkeleton } from '../components/TableSkeleton';
-import { formatCurrency } from '../utils/formatters';
-import { useToast } from '../hooks/useToast';
+import { formatCurrency } from '@/utils';
+import { useToast } from '@/hooks';
+import { queryKeys } from '../constants/queryKeys';
 
 export default function ProyectosPage() {
   const queryClient = useQueryClient();
@@ -27,7 +28,7 @@ export default function ProyectosPage() {
   const itemsPerPage = 10;
 
   const { data, isLoading } = useQuery({
-    queryKey: ['proyectos', currentPage],
+    queryKey: queryKeys.proyectos.list({ page: currentPage }),
     queryFn: () => proyectosService.getAll({ page: currentPage, limit: itemsPerPage }),
   });
 
@@ -66,7 +67,7 @@ export default function ProyectosPage() {
       alert(
         `Importación completada:\n✓ Exitosos: ${data.exitosos}\n✗ Fallidos: ${data.fallidos}\nTotal: ${data.total}`
       );
-      queryClient.invalidateQueries({ queryKey: ['proyectos'] });
+      queryClient.invalidateQueries({ queryKey: queryKeys.proyectos.all });
       setShowImportModal(false);
       setImportFile(null);
     },
@@ -89,7 +90,7 @@ export default function ProyectosPage() {
   const createMutation = useMutation({
     mutationFn: (data: CreateProyectoDto) => proyectosService.create(data),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['proyectos'] });
+      queryClient.invalidateQueries({ queryKey: queryKeys.proyectos.all });
       toast.success('Proyecto creado exitosamente');
       setIsFormOpen(false);
       setEditingProyecto(undefined);
@@ -103,7 +104,7 @@ export default function ProyectosPage() {
     mutationFn: ({ id, data }: { id: string; data: CreateProyectoDto }) =>
       proyectosService.update(id, data),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['proyectos'] });
+      queryClient.invalidateQueries({ queryKey: queryKeys.proyectos.all });
       toast.success('Proyecto actualizado exitosamente');
       setIsFormOpen(false);
       setEditingProyecto(undefined);
@@ -116,7 +117,7 @@ export default function ProyectosPage() {
   const deleteMutation = useMutation({
     mutationFn: (id: string) => proyectosService.delete(id),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['proyectos'] });
+      queryClient.invalidateQueries({ queryKey: queryKeys.proyectos.all });
       toast.success('Proyecto eliminado exitosamente');
     },
     onError: () => {
