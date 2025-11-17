@@ -4,6 +4,7 @@ import { proyectosService } from '../services/proyectos.service';
 import { insumosService } from '../services/insumos.service';
 import { partidasService } from '../services/partidas.service';
 import { acuService } from '../services/acu.service';
+import { queryKeys } from '../constants/queryKeys';
 import {
   BarChart,
   Bar,
@@ -22,22 +23,22 @@ import {
 
 export default function HomePage() {
   const { data: proyectos, isLoading: loadingProyectos } = useQuery({
-    queryKey: ['proyectos'],
+    queryKey: queryKeys.proyectos.all,
     queryFn: () => proyectosService.getAll({ limit: 100 }),
   });
 
   const { data: insumosData, isLoading: loadingInsumos } = useQuery({
-    queryKey: ['insumos'],
+    queryKey: queryKeys.insumos.all,
     queryFn: () => insumosService.getAll({ limit: 1000 }),
   });
 
   const { data: partidasData } = useQuery({
-    queryKey: ['partidas'],
+    queryKey: queryKeys.partidas.all,
     queryFn: () => partidasService.getAll({ limit: 1000 }),
   });
 
   const { data: acusData } = useQuery({
-    queryKey: ['acus'],
+    queryKey: queryKeys.acu.all,
     queryFn: () => acuService.getAll({ limit: 1000 }),
   });
 

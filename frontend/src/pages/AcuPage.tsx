@@ -8,7 +8,7 @@ import { AcuForm } from '../components/AcuForm';
 import { Pagination } from '../components/Pagination';
 import { TableSkeleton } from '../components/TableSkeleton';
 import { formatCurrency, getTipoColor } from '@/utils';
-import { useToast } from '@/hooks';
+import { useToast, useSearch } from '@/hooks';
 import { queryKeys } from '../constants/queryKeys';
 
 export default function AcuPage() {
@@ -17,7 +17,6 @@ export default function AcuPage() {
   const [selectedAcu, setSelectedAcu] = useState<Acu | null>(null);
   const [showDetalle, setShowDetalle] = useState(false);
   const [isFormOpen, setIsFormOpen] = useState(false);
-  const [searchTerm, setSearchTerm] = useState<string>('');
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 10;
 
@@ -26,19 +25,14 @@ export default function AcuPage() {
     queryFn: () => acuService.getAll({ page: currentPage, limit: itemsPerPage }),
   });
 
-  // Client-side search filter
-  const filteredData = data?.items?.filter((acu: Acu) => {
-    if (!searchTerm) return true;
-    const search = searchTerm.toLowerCase();
-    return (
-      acu.codigo.toLowerCase().includes(search) ||
-      acu.partida?.codigo?.toLowerCase().includes(search) ||
-      acu.partida?.nombre?.toLowerCase().includes(search)
-    );
+  // Use search hook for client-side filtering
+  const { searchTerm, setSearchTerm, filteredItems: filteredData } = useSearch(data?.items || [], {
+    searchFields: ['codigo'],
+    debounceMs: 300
   });
 
   const { data: partidas } = useQuery({
-    queryKey: ['partidas'],
+    queryKey: queryKeys.partidas.all,
     queryFn: () => partidasService.getAll(),
   });
 

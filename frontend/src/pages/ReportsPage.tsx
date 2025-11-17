@@ -15,6 +15,7 @@ import { partidasService } from '../services/partidas.service';
 import { acuService } from '../services/acu.service';
 import { proveedoresService } from '../services/proveedores.service';
 import { formatCurrency } from '@/utils';
+import { queryKeys } from '../constants/queryKeys';
 import {
   BarChart,
   Bar,
@@ -37,27 +38,27 @@ export default function ReportsPage() {
 
   // Fetch all data
   const { data: proyectos } = useQuery({
-    queryKey: ['proyectos-reports'],
+    queryKey: queryKeys.proyectos.all,
     queryFn: () => proyectosService.getAll({ limit: 1000 }),
   });
 
   const { data: insumosData } = useQuery({
-    queryKey: ['insumos-reports'],
+    queryKey: queryKeys.insumos.all,
     queryFn: () => insumosService.getAll({ limit: 5000 }),
   });
 
   const { data: partidasData } = useQuery({
-    queryKey: ['partidas-reports'],
+    queryKey: queryKeys.partidas.all,
     queryFn: () => partidasService.getAll({ limit: 5000 }),
   });
 
   const { data: acusData } = useQuery({
-    queryKey: ['acus-reports'],
+    queryKey: queryKeys.acu.all,
     queryFn: () => acuService.getAll({ limit: 5000 }),
   });
 
   const { data: proveedores } = useQuery({
-    queryKey: ['proveedores-reports'],
+    queryKey: queryKeys.proveedores.all,
     queryFn: () => proveedoresService.getAll(),
   });
 

@@ -8,7 +8,8 @@ import {
 import { Plus, Edit, Trash2, Building2, Mail, Phone, MapPin } from 'lucide-react';
 import { ProveedorForm } from '../components/ProveedorForm';
 import { CardSkeleton } from '../components/CardSkeleton';
-import { useToast } from '../hooks/useToast';
+import { useToast } from '@/hooks';
+import { queryKeys } from '../constants/queryKeys';
 
 export default function ProveedoresPage() {
   const queryClient = useQueryClient();
@@ -17,14 +18,14 @@ export default function ProveedoresPage() {
   const [editingProveedor, setEditingProveedor] = useState<Proveedor | undefined>();
 
   const { data, isLoading } = useQuery({
-    queryKey: ['proveedores'],
+    queryKey: queryKeys.proveedores.all,
     queryFn: () => proveedoresService.getAll(),
   });
 
   const createMutation = useMutation({
     mutationFn: (data: CreateProveedorDto) => proveedoresService.create(data),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['proveedores'] });
+      queryClient.invalidateQueries({ queryKey: queryKeys.proveedores.all });
       toast.success('Proveedor creado exitosamente');
       setIsFormOpen(false);
       setEditingProveedor(undefined);
@@ -38,7 +39,7 @@ export default function ProveedoresPage() {
     mutationFn: ({ id, data }: { id: string; data: CreateProveedorDto }) =>
       proveedoresService.update(id, data),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['proveedores'] });
+      queryClient.invalidateQueries({ queryKey: queryKeys.proveedores.all });
       toast.success('Proveedor actualizado exitosamente');
       setIsFormOpen(false);
       setEditingProveedor(undefined);
@@ -51,7 +52,7 @@ export default function ProveedoresPage() {
   const deleteMutation = useMutation({
     mutationFn: (id: string) => proveedoresService.delete(id),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['proveedores'] });
+      queryClient.invalidateQueries({ queryKey: queryKeys.proveedores.all });
       toast.success('Proveedor eliminado exitosamente');
     },
     onError: () => {

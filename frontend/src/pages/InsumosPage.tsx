@@ -6,7 +6,7 @@ import { InsumoForm } from '../components/InsumoForm';
 import { Pagination } from '../components/Pagination';
 import { TableSkeleton } from '../components/TableSkeleton';
 import { formatCurrency, getTipoColor, getTipoLabel } from '@/utils';
-import { useToast } from '@/hooks';
+import { useToast, useSearch } from '@/hooks';
 import { queryKeys } from '../constants/queryKeys';
 
 export default function InsumosPage() {
@@ -15,7 +15,6 @@ export default function InsumosPage() {
   const [showImportModal, setShowImportModal] = useState(false);
   const [importFile, setImportFile] = useState<File | null>(null);
   const [tipoFilter, setTipoFilter] = useState<string>('');
-  const [searchTerm, setSearchTerm] = useState<string>('');
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [editingInsumo, setEditingInsumo] = useState<Insumo | undefined>();
   const [currentPage, setCurrentPage] = useState(1);
@@ -30,15 +29,10 @@ export default function InsumosPage() {
     }),
   });
 
-  // Filter data on client side for search
-  const filteredData = data?.items?.filter((insumo: Insumo) => {
-    if (!searchTerm) return true;
-    const search = searchTerm.toLowerCase();
-    return (
-      insumo.codigo.toLowerCase().includes(search) ||
-      insumo.nombre.toLowerCase().includes(search) ||
-      insumo.descripcion?.toLowerCase().includes(search)
-    );
+  // Use search hook for client-side filtering
+  const { searchTerm, setSearchTerm, filteredItems: filteredData } = useSearch(data?.items || [], {
+    searchFields: ['codigo', 'nombre', 'descripcion'],
+    debounceMs: 300
   });
 
   const importarMutation = useMutation({
