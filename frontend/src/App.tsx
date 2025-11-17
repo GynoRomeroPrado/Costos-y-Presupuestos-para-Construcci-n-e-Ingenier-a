@@ -1,17 +1,19 @@
 import { BrowserRouter as Router, Routes, Route, Link } from 'react-router-dom';
+import { Suspense, lazy } from 'react';
 import { Home, Package, ClipboardList, Calculator, FolderKanban, Truck, FileText, Settings } from 'lucide-react';
 import { ToastContainer } from '@/components/Toast';
+import { PageLoader } from '@/components/PageLoader';
 import { useToastStore } from '@/hooks/useToast';
 
-// Pages (to be created)
-import HomePage from '@/pages/HomePage';
-import InsumosPage from '@/pages/InsumosPage';
-import PartidasPage from '@/pages/PartidasPage';
-import AcuPage from '@/pages/AcuPage';
-import ProyectosPage from '@/pages/ProyectosPage';
-import ProveedoresPage from '@/pages/ProveedoresPage';
-import ReportsPage from '@/pages/ReportsPage';
-import SettingsPage from '@/pages/SettingsPage';
+// Lazy load pages for code splitting and better performance
+const HomePage = lazy(() => import('@/pages/HomePage'));
+const InsumosPage = lazy(() => import('@/pages/InsumosPage'));
+const PartidasPage = lazy(() => import('@/pages/PartidasPage'));
+const AcuPage = lazy(() => import('@/pages/AcuPage'));
+const ProyectosPage = lazy(() => import('@/pages/ProyectosPage'));
+const ProveedoresPage = lazy(() => import('@/pages/ProveedoresPage'));
+const ReportsPage = lazy(() => import('@/pages/ReportsPage'));
+const SettingsPage = lazy(() => import('@/pages/SettingsPage'));
 
 function App() {
   const { toasts, removeToast } = useToastStore();
@@ -97,16 +99,18 @@ function App() {
 
         {/* Main Content */}
         <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-          <Routes>
-            <Route path="/" element={<HomePage />} />
-            <Route path="/insumos" element={<InsumosPage />} />
-            <Route path="/partidas" element={<PartidasPage />} />
-            <Route path="/acu" element={<AcuPage />} />
-            <Route path="/proyectos" element={<ProyectosPage />} />
-            <Route path="/proveedores" element={<ProveedoresPage />} />
-            <Route path="/reportes" element={<ReportsPage />} />
-            <Route path="/configuracion" element={<SettingsPage />} />
-          </Routes>
+          <Suspense fallback={<PageLoader />}>
+            <Routes>
+              <Route path="/" element={<HomePage />} />
+              <Route path="/insumos" element={<InsumosPage />} />
+              <Route path="/partidas" element={<PartidasPage />} />
+              <Route path="/acu" element={<AcuPage />} />
+              <Route path="/proyectos" element={<ProyectosPage />} />
+              <Route path="/proveedores" element={<ProveedoresPage />} />
+              <Route path="/reportes" element={<ReportsPage />} />
+              <Route path="/configuracion" element={<SettingsPage />} />
+            </Routes>
+          </Suspense>
         </main>
       </div>
     </Router>
